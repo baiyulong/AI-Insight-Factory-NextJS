@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Importance {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ContentType {
+  WECHAT
+  XIAOHONGSHU
+  WEEKLY
+  NEWSLETTER
+  ANALYSIS
+  DAILY
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum DigestType {
+  DAILY
+  WEEKLY
+}
+
+model Feed {
+  id          String    @id @default(cuid())
+  name        String
+  url         String    @unique
+  category    String?
+  isActive    Boolean   @default(true)
+  lastFetched DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  articles    Article[]
+}
+
+model Article {
+  id          String             @id @default(cuid())
+  feedId      String
+  feed        Feed               @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String             @unique
+  link        String             @unique
+  content     String?
+  summary     String?
+  importance  Importance         @default(MEDIUM)
+  aiCategory  String?
+  publishedAt DateTime
+  processedAt DateTime?
+  createdAt   DateTime           @default(now())
+  tags        ArticleTag[]
+  generated   GeneratedContent[]
+
+  @@index([publishedAt])
+  @@index([aiCategory])
+  @@index([importance])
+}
+
+model Tag {
+  id       String         @id @default(cuid())
+  name     String         @unique
+  slug     String         @unique
+  articles ArticleTag[]
+}
+
+model ArticleTag {
+  articleId String
+  tagId     String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+}
+
+model GeneratedContent {
+  id          String        @id @default(cuid())
+  articleId   String?
+  article     Article?      @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  contentType ContentType
+  title       String
+  content     String
+  status      ContentStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([contentType])
+  @@index([status])
+}
+
+model Digest {
+  id        String     @id @default(cuid())
+  type      DigestType
+  title     String
+  content   String
+  date      DateTime   @unique
+  createdAt DateTime   @default(now())
+
+  @@index([type, date])
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
