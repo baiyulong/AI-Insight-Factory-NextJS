@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "AI 周报" };
-export const revalidate = 600;
+export const dynamic = "force-dynamic";
 
 export default async function WeeklyPage() {
   const digests = await prisma.digest.findMany({

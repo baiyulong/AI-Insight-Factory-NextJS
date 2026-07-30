@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { ArticleCard } from "@/components/article/article-card";
 import Link from "next/link";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [hotArticles, latestArticles] = await Promise.all([
